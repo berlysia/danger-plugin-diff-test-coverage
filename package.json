@@ -10,9 +10,10 @@
     "fix": "run-s fix:eslint fix:prettier",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
-    "build": "tsc --outDir dist",
+    "build": "tsc --project tsconfig.build.json --outDir dist --declaration",
+    "clean": "rimraf dist",
     "test": "jest",
-    "prepublish": "yarn build",
+    "prepublishOnly": "run-s clean build",
     "prepare": "husky install"
   },
   "files": [
@@ -30,6 +31,7 @@
     "lint-staged": "^11.0.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.2.1",
+    "rimraf": "^3.0.2",
     "ts-jest": "^27.0.7",
     "typescript": "^4.4.4",
     "utility-types": "^3.10.0"
