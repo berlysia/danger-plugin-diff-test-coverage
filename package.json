@@ -1,6 +1,6 @@
 {
-  "name": "danger-plugin-diff-test-coverage",
-  "version": "0.0.1",
+  "name": "@berlysia/danger-plugin-diff-test-coverage",
+  "version": "0.0.1-alpha.1",
   "main": "dist/index.js",
   "license": "MIT",
   "scripts": {
@@ -10,7 +10,7 @@
     "fix": "run-s fix:eslint fix:prettier",
     "fix:eslint": "yarn lint:eslint --fix",
     "fix:prettier": "yarn lint:prettier --write",
-    "build": "esbuild src/index.ts --outdir=dist",
+    "build": "tsc --outDir dist",
     "test": "jest",
     "prepare": "husky install"
   },

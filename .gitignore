@@ -1,5 +1,4 @@
-# ちゃんとするまでは成果物も含める
-# dist
+dist
 node_modules
 coverage
 *.log
