@@ -136,7 +136,7 @@ export function relatedBranchesCoverage(
     Object.entries(coverage.branchMap) as [`${number}`, BranchShape][]
   )
     .filter(([_id, branch]) => {
-      const locRanges = branch.location.map(convertToRangeFromLocation);
+      const locRanges = (branch.location ?? []).map(convertToRangeFromLocation);
       return ranges.some((range) =>
         locRanges.some((locRange) => isIntersected(range, locRange))
       );

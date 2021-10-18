@@ -33,5 +33,5 @@ export type BranchShape = {
   loc: LocationShape;
   // eslint-disable-next-line @typescript-eslint/ban-types -- distinguishable string type
   type: "cond-expr" | ({} & string);
-  location: LocationShape[];
+  location?: LocationShape[];
 };
