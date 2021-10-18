@@ -59,9 +59,9 @@ function collectSequence(lines: number[]): Range[] {
 export async function diffCoverage(givenOption: OptionalPluginOption = {}) {
   const option = withDefaultOption(givenOption);
 
-  // do not destructure
-  const created_files = danger.git.created_files;
-  const modified_files = danger.git.modified_files;
+  // these are absent if running on branch(not PR)
+  const created_files = danger.git.created_files ?? [];
+  const modified_files = danger.git.modified_files ?? [];
 
   const coverageRecord = await readCoverage(option);
 
