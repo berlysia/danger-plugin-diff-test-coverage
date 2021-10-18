@@ -12,6 +12,7 @@
     "fix:prettier": "yarn lint:prettier --write",
     "build": "tsc --outDir dist",
     "test": "jest",
+    "prepublish": "yarn build",
     "prepare": "husky install"
   },
   "files": [
