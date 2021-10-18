@@ -37,7 +37,7 @@ type Coverage = {
   rate: number;
 };
 
-type CoverageStat = {
+export type CoverageStat = {
   statements: Coverage;
   functions: Coverage;
   branches: Coverage;

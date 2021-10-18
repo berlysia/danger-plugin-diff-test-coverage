@@ -1,6 +1,7 @@
 import path from "path";
 import type { DangerDSLType } from "danger";
 import type { StructuredDiff, StructuredDiffChange } from "./types/danger";
+import type { CoverageStat } from "./coverage";
 import {
   parseFileCoverage,
   readCoverage,
@@ -56,7 +57,19 @@ function collectSequence(lines: number[]): Range[] {
   });
 }
 
-export async function diffCoverage(givenOption: OptionalPluginOption = {}) {
+type DiffCoverageResult = {
+  filename: string;
+  diffCoverage: CoverageStat | null;
+  fileCoverage: CoverageStat;
+};
+
+function isNonNullable<T>(x: T): x is NonNullable<T> {
+  return x !== null;
+}
+
+export async function diffCoverageRaw(
+  givenOption: OptionalPluginOption = {}
+): Promise<DiffCoverageResult[]> {
   const option = withDefaultOption(givenOption);
 
   // these are absent if running on branch(not PR)
@@ -107,12 +120,28 @@ export async function diffCoverage(givenOption: OptionalPluginOption = {}) {
     })
   );
 
-  const messages = [...createdFilesCoverage, ...modifiedFileDiffsCoverage]
-    .filter(Boolean)
-    .map((x) => toStringCoverageStat(x!))
-    .join("\n");
+  return [
+    ...createdFilesCoverage.filter(isNonNullable),
+    ...modifiedFileDiffsCoverage.filter(isNonNullable),
+  ];
+}
 
-  markdown(
-    `## ${option.title}\n\n|File|% Stmts|% Branch|% Funcs|% Stmts(F)|% Branch(F)|% Funcs(F)|\n|----|----|----|----|----|----|----|\n${messages}\n`
-  );
+export function buildMessage(
+  results: DiffCoverageResult[],
+  givenOption: OptionalPluginOption = {}
+): string {
+  const option = withDefaultOption(givenOption);
+
+  const messages = results.map((x) => toStringCoverageStat(x!)).join("\n");
+
+  if (messages.length === 0) {
+    return `## ${option.title}\n\nNo coverages to be shown`;
+  }
+  return `## ${option.title}\n\n|File|% Stmts(Diff)|% Branch(Diff)|% Funcs(Diff)|% Stmts(File)|% Branch(File)|% Funcs(File)|\n|----|----|----|----|----|----|----|\n${messages}\n`;
+}
+
+export async function diffCoverage(givenOption: OptionalPluginOption = {}) {
+  const result = await diffCoverageRaw(givenOption);
+  const message = buildMessage(result);
+  markdown(message);
 }
