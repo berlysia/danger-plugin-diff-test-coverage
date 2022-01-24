@@ -1,14 +1,6 @@
 import type { DangerDSLType, GitDSL } from "danger";
 import type { DeepPartial, Mutable } from "utility-types";
-import { diffCoverage } from "./index";
-
-jest.mock("./coverage", () => {
-  const orig = jest.requireActual("./coverage");
-  return {
-    ...orig,
-    readCoverage: () => Promise.resolve({}),
-  };
-});
+import { diffCoverageRaw } from "./index";
 
 declare let global: {
   message: jest.Mock;
@@ -35,6 +27,12 @@ beforeEach(() => {
   /* eslint-enable jest/prefer-spy-on -- 変更完了 */
 });
 
-test("run", async () => {
-  await diffCoverage();
+describe("diffCoverageRaw", () => {
+  it("run", async () => {
+    expect(
+      await diffCoverageRaw({
+        coverageFilePath: "src/__fixtures__/emptyCoverage.json",
+      })
+    ).toStrictEqual([]);
+  });
 });

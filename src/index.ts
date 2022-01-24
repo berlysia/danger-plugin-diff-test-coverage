@@ -1,5 +1,6 @@
 import path from "path";
 import type { DangerDSLType } from "danger";
+import uniq from "lodash.uniq";
 import type { StructuredDiff, StructuredDiffChange } from "./types/danger";
 import type { CoverageStat } from "./coverage";
 import {
@@ -78,46 +79,51 @@ export async function diffCoverageRaw(
 
   const coverageRecord = await readCoverage(option);
 
-  const createdFilesCoverage = created_files.map((filename) => {
-    const perFileCoverage = coverageRecord[path.resolve(filename)];
-    if (!perFileCoverage) return null;
-
-    return {
-      filename,
-      diffCoverage: null,
-      fileCoverage: parseFileCoverage(perFileCoverage),
-    };
-  });
-
-  const modifiedFileDiffsCoverage = await Promise.all(
-    modified_files.map(async (filename) => {
-      const structuredDiff: StructuredDiff | null =
-        await danger.git.structuredDiffForFile(filename);
-      if (!structuredDiff) {
-        return null;
-      }
-
-      const changesToBeCovered = structuredDiff.chunks
-        .flatMap((c) => c.changes)
-        .filter((x) => x.type !== "del")
-        .sort(sortChangesByNewLine);
-
-      const rangesToBeCovered = collectSequence(
-        changesToBeCovered.map(getNewLine)
-      );
-
+  const createdFilesCoverage = uniq(created_files.map(option.idFunction)).map(
+    (filename) => {
       const perFileCoverage = coverageRecord[path.resolve(filename)];
-
-      if (!perFileCoverage) {
-        return null;
-      }
+      if (!perFileCoverage) return null;
 
       return {
         filename,
-        diffCoverage: relatedCoverage(rangesToBeCovered, perFileCoverage),
+        diffCoverage: null,
         fileCoverage: parseFileCoverage(perFileCoverage),
       };
-    })
+    }
+  );
+
+  const modifiedFileDiffsCoverage = await Promise.all(
+    // FIXME: 名寄せして推測した場合は差分がない可能性がある
+    uniq(modified_files.map(option.idFunction))
+      .filter((filename) => Boolean(coverageRecord[path.resolve(filename)]))
+      .map(async (filename) => {
+        const structuredDiff: StructuredDiff | null =
+          await danger.git.structuredDiffForFile(filename);
+        if (!structuredDiff) {
+          return null;
+        }
+
+        const changesToBeCovered = structuredDiff.chunks
+          .flatMap((c) => c.changes)
+          .filter((x) => x.type !== "del")
+          .sort(sortChangesByNewLine);
+
+        const rangesToBeCovered = collectSequence(
+          changesToBeCovered.map(getNewLine)
+        );
+
+        const perFileCoverage = coverageRecord[path.resolve(filename)];
+
+        if (!perFileCoverage) {
+          return null;
+        }
+
+        return {
+          filename,
+          diffCoverage: relatedCoverage(rangesToBeCovered, perFileCoverage),
+          fileCoverage: parseFileCoverage(perFileCoverage),
+        };
+      })
   );
 
   return [
